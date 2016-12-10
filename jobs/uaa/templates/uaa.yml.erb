@@ -11,6 +11,7 @@
   uaa_db = p_arr('uaadb.databases').find { |db| db['tag'] == 'uaa' }
   uaa_role = p_arr('uaadb.roles').find { |role| role['tag'] == 'admin' }
   protocol = p('login.protocol')
+  uaa_db_scheme = p('uaadb.db_scheme')
   issuer_uri = p('uaa.issuer', p('uaa.url', "#{protocol}://uaa.#{p_opt('domain')}"))
   oauth_clientsLoginRedirectUri = "#{protocol}://login.#{p_opt('domain')}"
 
@@ -24,7 +25,11 @@
 name: uaa
 
 database:
+  <% if uaa_db_scheme == 'sqlserver' %>
+  url: jdbc:<%= p('uaadb.db_scheme') %>://<%= p('uaadb.address') %>:<%= p('uaadb.port') %>;databaseName=<%= uaa_db['name'] %>
+  <% else %>
   url: jdbc:<%= p('uaadb.db_scheme') %>://<%= p('uaadb.address') %>:<%= p('uaadb.port') %>/<%= uaa_db['name'] %>
+  <% end %>
   username: <%= uaa_role['name'] %>
   password: "<%= uaa_role['password'] %>"
   maxactive: <%= p('uaa.database.max_connections') %>
